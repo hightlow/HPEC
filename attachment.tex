@@ -1,0 +1,56 @@
+\documentclass{llncs}
+
+\usepackage{ifpdf}
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \graphicspath{{./pdf/}{./jpeg/}{./eps/}}
+  \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  \usepackage[dvips]{graphicx}
+  \graphicspath{{./eps/}}
+  \DeclareGraphicsExtensions{.eps}
+\fi
+
+\usepackage{color}
+\usepackage[cmex10]{amsmath}
+\usepackage{amsfonts}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+\usepackage[tight,footnotesize]{subfigure}
+\begin{document}
+
+\title{Attachment: Bisection and Twisted Bidiagonal SVD on GPU for Big Matrices}
+\section{Algorithms}
+Algorithm \ref{alg:negcount} is the $NegCount()$ function. It calculates the singular value that are less than $\mu$ of a $n\times n$ matrix $B$.
+\input{algorithm_negcount.tex}
+
+Algorithm \ref{alg:bisection} is the Bisection Algorithm. It gets the singular values in the interval of $[l,u)$ of a $n\times n$ matrix $B$. $val$ is the output of the function containing the singular value between $[l,u)$. $n_l$ and $n_u$ are the indeces of singular values.
+\input{algorithm_bisection.tex}
+
+\vspace{1in}
+Algorithm \ref{alg:twisted} is the algorithm calculates the singular vectors.
+\input{algorithm_twisted.tex}
+\begin{equation}
+\label{eq:gamma}
+k = \arg \min_{1\le i \le n} \gamma_{i} = \arg \min_{1\le i \le n}
+\begin{cases}
+\beta_1 & \text{if } i=1 \\
+\beta_i - \alpha_i * l_{i-1} & \text{if } 2\le i\le n-1\\
+\alpha_n & \text{if } i=n
+\end{cases}
+\end{equation}
+where $\alpha_i$, $\beta_i$, and $l_i$ are mentioned in Section Algorithm.
+
+\vspace{1in}
+Algorithm \ref{alg:lengthsub} is the algorithm that separate the whole interval containing all singular values into equal-length subinterval.
+\input{algorithm_lengthsub.tex}
+
+Algorithm \ref{alg:numsub} is the algorithm that separate the whole interval containing all singular values into equal-number subinterval.
+\input{algorithm_numsub.tex}
+
+\vspace{-0.1in}
+\bibliographystyle{splncs}
+\bibliography{ref}
+
+\end{document}

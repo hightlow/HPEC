@@ -1,0 +1,41 @@
+\section{Introduction} \label{sec:intro}
+There is rapidly growing interest in singular value decomposition (SVD) in various fields,
+including signal processing, computer vision, information retrieval, machine learning and information theory.
+Yet, most algorithms for computing SVD are limited to solving problems of only small-scale data in acceptable time and space requirements due to their algorithmic complexities.
+With the advent of the ``big data'' era, these algorithms are no longer adequate in terms of computational complexity and required memory space.
+
+%A typical SVD algorithm can be broken down into two steps \cite{65SIAM}.
+%The first step is to reduce the initial matrix to bidiagonal.
+%The second step is to diagonalize the resulting matrix.
+%Most of the literature focuses on the second step as algorithms in second step typically use iterative approaches \cite{58iter1,90iter2,65iter3} and thus take the bulk of the computation time depending on the accuracy requirement.
+
+Among the SVD algorithms, QR iteration is an algorithm that is widely used in software applications.
+Jacobi algorithm is the one with the highest accuracy in practice \cite{97bookalgebra}.
+However, the cost of $O(n^3)$ complexity with a big constant causes these algorithms very slow.
+Divide-and-conquer (DC) is assumed to be the fastest algorithm for large matrices \cite{94DCSVD}.
+It takes $O(n^{2})$ flops on average \cite{97bookalgebra}. 
+But the major drawback of DC is the relatively low accuracy of the singular values when merging, let alone singular vectors. 
+In summary, the prior works on SVD computations are either time-consuming or inaccurate.
+
+In addition, all algorithms discussed above have three common disadvantages:
+(1) heavy data dependence makes these SVD algorithms not suitable for parallelization and extension for other architectures;
+(2) large memory space required for temporary variables dramatically limits the capability for computing singular values for very large matrices, and
+(3) many application, such as principal component analysis (PCA), only require a small subset of the singular values and vectors, however, these algorithms are unable to calculate the subsets without completing the whole decomposition.
+
+In this paper, we present a new SVD approach called ``Bisection and Twisted'' (BT) algorithm and implement it on GPU. 
+Compared to other algorithms, BT approach only requires $O(n^2)$ to complete SVD\cite{05UCB,09NLAAtwisted}.
+Most importantly, there are three salient features that make BT algorithm attractive for very large matrices. 
+First, the data dependency is weak in the BT algorithm, which make it an excellent candidate for parallel computing. 
+Second, the algorithm can obtain a subset of $k$ singular values and its corresponding vectors in $O(kn)$ time. 
+This is particularly useful for applications that do not require a complete SVD.
+Third, the algorithm needs only $O(kn)$ memory space to store temporary variables, which is important for extending to large scale matrices in big data applications on memory constrained platforms.
+We design a multi-GPU version of BT algorithm that can scale well with the matrix size. To the best of our knowledge, we are the first to achieve bidiagonal SVD on a 1 million by 1 million matrix using just two GPUs.
+We also perform in-depth analysis on the GPU kernels for singular vector calculation, and present multiple optimization methods to further improve the SVD performance on GPUs.
+
+The rest of the paper is organized as follows.
+The Bisection and Twisted algorithm is given in Section \ref{sec:algorithm}.
+Section \ref{sec:implementation} describes the implementation of the BT algorithm on GPUs, as well as the GPU specific optimizations.
+Section \ref{sec:results} presents the experimental results and profiling analysis of GPU kernels.
+Section \ref{sec:related} discusses the related work.
+The conclusion and future work are in Section \ref{sec:conclusion}.
+

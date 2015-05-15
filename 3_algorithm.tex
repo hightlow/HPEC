@@ -1,0 +1,92 @@
+\section{Bisection and Twisted Algorithm} \label{sec:algorithm}
+For an arbitrary matrix $A\in \mathbb{R}^{m \times n} (m>n)$,
+The SVD of an arbitrary matrix $A\in \mathbb{R}^{m \times n} (m>n)$ is the form 
+\[A = U \Sigma V^T,\] where $U$ and $V$ is a $m \times m$ and $n \times n$ orthogonal matrix whose columns are singular vectors, and $\Sigma$ is a $m\times n$ diagonal matrix whose diagonal elements are singular values.
+A typical SVD algorithm can be broken down into two steps \cite{65SIAM}.
+The first step is to reduce the initial matrix to bidiagonal matrix by Householder transform.
+The second step is to diagonalize the bidiagonal matrix.
+Householder transform above has been optimized in paper \cite{LiuHouseholder}.
+In this paper, we focus only on the second step that reduces a bidiagonal matrix to a diagonal matrix, for which the ``bisection and twisted'' algorithm is designed.
+ 
+The bisection and twisted algorithm is divided into two phases:
+(1) obtain the singular values of the bidiagonal matrix by bisection approach; and
+(2) obtain the corresponding left and right singular vectors of every singular value by twisted factorization.
+Next we describe these two phases in the following subsections.
+
+\subsection{Bisection Algorithm}\label{subsec:bisection}
+Suppose $B$ is an upper bidiagonal $n \times n$ matrix with elements $b_{i,j}$.
+The matrix $T = B^T B - \mu^2 I_n$ can be decomposed as
+\begin{equation}
+T = B^T B - \mu^2 I_n = L D L^T ,
+\label{eq:T}
+\end{equation}
+where $\mu$ is a shift variable, $D=diag(d_1,d_2,\cdots,d_n)$ and $L$ is lower bidiagonal matrix, whose diagonal elements are $1$s and one-order subdiagonal elements are $l_{i}, (i=1,\cdots,n-1)$.
+By substituting $L$ and $D$ into Eq. (\ref{eq:T}), we can get the following equations
+\[
+\left \{ \begin{aligned}
+b_{1,1}^2 - \mu^2 &= d_1\\
+b_{k-1,k-1} b_{k-1,k} &= d_{k-1} l_{k-1}\\
+b_{k-1,k}^2 + b_{k,k}^2 - \mu^2 &= l_{k-1}^2 d_{k-1} + d_k
+\vspace{-0.05in}
+\end{aligned} \right .
+\label{eq:ldl} \]
+where $k = 2,3,\cdots,n$.
+Next, we define an auxiliary values $t_{k} = t_{k-1} * (b_{k-1,k}^2 / d_{k-1}) - \mu^2$, and then all the equations in Eq. (\ref{eq:ldl}) reduce to
+\begin{equation}
+\left \{
+\begin{aligned}
+d_1 = b_{1,1}^2 - \mu^2 \\
+d_k = b_{k,k}^2 + t_{k}
+\end{aligned}
+\right .
+\label{eq:negcount}
+\end{equation}
+
+Matrices $D$ and $T$ are two congruent symmetric matrices.
+According to the Sylvester's law of inertia, both matrices $D$ and $T$ have the same numbers of positive, negative, and zero eigenvalues.
+Thus, the number of negative elements in the diagonal of matrix $D$ is the number of singular values of matrix $T$.
+We define a function denoted by $NegCount(\mu)$ to count the number of negative elements in the diagonal of matrix $D$. %described in Algorithm \ref{alg:negcount}.
+%Algorithm \ref{alg:negcount} describes how $NegCount$ function works.
+%Lines 3-7 calculate the negative number of singular values that are less than $\mu$.
+%Since matrices $B$ and $B^T$ have the same singular values,
+$NegCount(\mu)$ is also the number of the singular values of $B$ which are less than $\mu$.
+$NegCount(x)$ is a monotonically non-decreasing function of $x$ \cite{95ETNAbisecion}.
+
+\subsection{Twisted Algorithm}
+Suppose $\lambda$ is a singular value of bidiagonal matrix $B \in R^{n \times n}$.
+Then the matrix $B^T B - \lambda^2 I$ can be decomposed as
+\begin{equation}
+B^T B - \lambda^2 I_n = L D_L L^T = U D_U U^T ,
+\end{equation}
+where $D_L=diag(\alpha_1, \cdots, \alpha_n)$, $D_U = diag(\beta_1, \cdots, \beta_n)$, 
+$L$ is lower bidiagonal matrix, whose diagonal elements are $1$s and one-order subdiagonal are $l_{i}, (i=1,\cdots,n-1)$ ($L$ share the same format as in Eq. (\ref{eq:T})).
+$U$ is upper bidiagonal matrix, whose diagonal elements are $1$s and one-order superdiagonal are $u_{i}, (i=1,\cdots,n-1)$. 
+
+Given the $LDL^T$ and $UDU^T$ decomposition, the twisted factorization of the shifted matrix is shown as
+\begin{equation}
+B^T B - \lambda^2 I = N_k D_k N_k^T ,
+\label{eq:twisted}
+\end{equation}
+where $D_k$ is diagonal matrix, $N_k$ is a twisted combination of the partial lower triangular $L$ and the partial upper triangular $U$.
+The subscript $k = \arg \min \gamma$, and $\gamma = (\beta_1, \beta_2 - \alpha_2 * l_1, \cdots, \beta_i - \alpha_i * l_{i-1}, \cdots, \beta_{n-1} - \alpha_{n-1} * l_{n-2}, \alpha_n)$.
+
+Thus, the corresponding singular vector of $\lambda$ can be obtained by solving the following matrix equations and then normalizing the solution:
+\begin{equation}
+N_k^T Z_k = e_k,
+\label{eq:unnorm}
+\end{equation}
+ where each column in matrix $Z_k$ is the non-normalization solution of singular vector corresponding to $\lambda$, and $e_k$ is a $k$th unit vector.
+
+%One advantage of BT algorithm is that it can be applied to cases where singular values are clustered together.
+%\textcolor{red}{
+Suppose $m$ is the multiplicity of singular values of matrix $B$. 
+The algorithm selects the indices of the first $m$ minimum values of $\gamma$. %(May need some more clarification????)} 
+Each index $k$ in $m$ has a different twisted factorization, and thus the singular vector can be obtained by solving its own Eq. (\ref{eq:unnorm}). These singular vectors are also orthogonal to each others\cite{09NLAAtwisted}.
+%\input{algorithm_twisted}
+%Algorithm \ref{alg:twisted} is the algorithm to obtain the corresponding singular vectors of given singular values.
+%Lines 4-7 are two obtain the parameter $\gamma$.
+%Obtain the multiplicity of a singular value and their corresponding minimum values are described in Lines 8-9.
+%Lines 10-16 are to calculate the singular vectors and normalize them.
+%%We completely parallelize the twisted factorization to speed up the algorithm on GPU architecture.
+%The cost for every singular vector transformation is $O(n)$, and the total cost of the transformations is $O(n^2)$.
+

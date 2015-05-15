@@ -1,0 +1,115 @@
+\section{Implementation and Optimization on GPU} \label{sec:implementation}
+\subsection{Singular Value Kernels} \label{sec_svalue}
+To obtain the singular values, we divide the whole interval containing all the singular values into several subintervals, which can be computed in parallel. 
+The whole interval can be calculated with Gershgorin circle theorem \cite{gershgorin}.
+Each subinterval can then be assigned to one GPU block (a group of threads executed concurrently on a CUDA multiprocessor unit) for calculation.
+Because there is a limit on the maximum number of threads for each GPU block,
+the number of singular values in a subinterval must not exceed that maximum number. Otherwise, the computation will have to be wrapped into two or more sequential phases to complete.
+Therefore how to divide the interval is critical for the performance of
+computing singular values. We consider two different partition
+strategies as described below. 
+\begin{figure}[hbpt]
+\vspace{-0.15in}
+\centering
+  \subfigure[Equal Length Division]
+  {
+  \includegraphics[width=0.4\textwidth]{length_interval}
+  \label{fig:length_interval}
+  }
+  \\
+  \vspace{-0.15in}
+  \subfigure[Equal Number Division]
+  {
+  \includegraphics[width=0.4\textwidth]{number_interval}
+  \label{fig:number_interval}
+  }
+\vspace{-0.1in}
+\caption{Division Strategies for Partitioning Interval  $[a_0, a_n)$.} 
+\vspace{-0.1in}
+\end{figure}
+
+The first (na\"{\i}ve) strategy is to divide the interval into chunks of equal length as shown in Fig.\ref{fig:length_interval}.
+The whole interval $[a_0, a_n)$ is divided into $n$ subintervals with
+the same length (i.e. same number of matrix elements). However, each
+such subinterval might not contain the same number of singular values.
+Mathematically, this strategy can be expressed as
+$a_{k+1}-a_k = a_{k}-a_{k-1}$. However, $NegCount(b_{k+1})-NegCount(b_{k}) = NegCount(b_{k})-NegCount(b_{k-1})$ is not necessarily true. We call this strategy as {\it equal length division}.
+
+Such ``equal length division'' strategy has issues in load balancing on 
+parallel computing resources, as the number of singular values in each
+subinterval is not uniform. As a result,
+the SVD workload cannot be easily balanced on GPU's processing cores to achieve a satisfactory speedup because the optimal number of subintervals is dependent on multiple factors, such as the maximum number of threads, the number of threads in a GPU warp, and the size of matrix.
+The maximum number of threads per block determines the minimum number
+of subintervals that are assigned to corresponding GPU blocks.
+In addition, the number of threads in a GPU warp assigned to a subinterval affects the GPU utilization level.
+
+We have conducted experiments to understand the trade-offs between subinterval length and the GPU execution efficiency. 
+Smaller subintervals will lead to a larger number of subintervals, which cause the GPU warp execution to be less efficient. 
+For example, our experiments show that if $512$ subintervals are used, the efficiency of GPU warp execution ranges from only 12.38\% to 52.15\% when the matrix size increases from $1,000$ to $17,000$.
+That is, only half of the threads in a warp work in parallel at most. This is because  (1)
+ there are fewer singular values than the number of warps, leading the cores under-utilized; and 
+(2) the warps are stalled due to memory accesses.
+When the subinterval becomes larger, some block may get more singular values to calculate than its capability.
+In order to achieve a higher speedup, we could try to find the optimal number of subintervals, or the number of blocks, based on experimental results. 
+However, because of the uneven number of singular values within subintervals, the speedup for equal length division remains very limited, which motivates us to search for a better partition method.
+
+Our novel strategy is to divide the whole interval by the number of singular values, as shown in Fig.\ref{fig:number_interval}. We call this approach {\it equal number division}. 
+Specifically, we divide the interval $[b_0,b_n)$ into $n$ subintervals, each of which has the same number of singular values. 
+However, the length of a subinterval is not necessarily equal to others.
+The mathematical representation can be written as $NegCount(a_{k+1})-NegCount(a_{k})=NegCount(a_{k})-NegCount(a_{k-1})$ but $b_{k+1}-b_k = b_{k}-b_{k-1}$ does not necessarily hold anymore.
+This equal number division significantly improves the load balancing on GPU cores, helping achieve a better speedup, as we show the performace evaluation in Figure \ref{fig:compare_value_kernel}.
+
+The significant advantage for the equal number division strategy is that, more singular values can be calculated with the equal number division strategy than equal length division strategy.
+Our experiment results show that equal number division outperforms length division strategy:
+The warp execution efficiency in equal number division version can reach 92.97\%-96.13\%.
+
+\subsection{Singular Vector Kernel} \label{sec_svector}
+Since the singular vectors are two $n\times n$ dense matrices, as the matrix size increases, there is increasing pressure on memory storage because the size of the fast shared memory is limited in GPU architectures.
+It is impracticable to move all the matrix entries to the shared memory when matrix size becomes extremely large.
+
+Based on the twisted algorithm, the required memory size $M$ on GPU is determined by matrix size $n$ and the size of floating number $S$ in equation $M = 5 * S * n^2$, 5 is the number of arrays required for a pair of singular vectors.
+For example, the maximum matrix size with $4$-bytes floating number values is about $10000$ for a GPU with $2$GB GPU memory. 
+For matrices larger than that, we need to explore multiple GPUs to scale its performance as described in Section \ref{sec_mgpu}.
+
+We initially implement the twisted algorithm with row-major matrix stored in the global memory
+of a GPU system. 
+We observe the heavy usage of global memory, which is
+the slowest memory component on GPUs. 
+Further analysis reveals that about 50\% of global memory transfers are read-after-write. Since it is a waste of time to read from global memory after writing to global memory,
+we could improve the memory access performance by copying these values into the local memory and shared memory of the GPU.
+The way to store matrix elements (column major or row major) is also critical as the memory accesses could be coalesced if the matrix elements
+can be read and computed in large chunks. We present the results
+of such optimizations in Section \ref{sec:results}.
+
+\subsection{Solution to Big Matrices} \label{sec_huge}
+In our design, the maximum number of singular values can be processed on a singular GPU is $m_b = subinterval\_size \times thread\_block\_size$,
+while the maximum number of singular vectors are determined by $m_t = \sqrt{U / (5 * S)}$,
+where $U$ is the memory size of GPU.
+Usually, $m_b$ is much larger than $m_t$.
+For Tesla K40c with 16GB memory, $m_t = 24K$, while $m_b = 262K$.
+However, when the matrix size is larger than $m_t$, even larger than $m_b$,
+the GPU kernels cannot obtain all singular values and vectors any more with a single GPU.
+Therefore we derive a divide-and-conquer architecture to solve the huge matrix size as explained in this section.
+
+When the size of a matrix is less than $m_b$ but larger than $m_t$,
+we only need to divide the singular vectors into small sets, each of which can be processed by a single GPU.
+However, if the matrix size is larger than $m_b$, we should divide both singular values and singular vectors into smaller partitions.
+The singular value computations can be partitioned using $m_b$ directly, i.e., there are $l_b = \lfloor(n/m_b)\rfloor + 1$ partitions, each of which has $\lfloor(n/l_b)\rfloor$ singular values.
+
+The division of singular vectors should take memory size into consideration.
+The maximum number of partitions $l_t$ can be derived from Equation $l_t = \sqrt{U/(5 * n * 4)}$, 
+where $n$ is matrix size.
+Thus, there should be $\lfloor(n/l_t)\rfloor+1$ partitions with
+$\lfloor(n/l_t)\rfloor$ singular vectors in each partition.
+
+\subsection{Multiple GPUs on a server}\label{sec_mgpu}
+We implement the multiple-GPU version with Pthread libraries on one server
+to control data partition and assignment to GPUs.
+Pthread is a nature choice for controlling multiple GPUs on a single server
+because it uses shared memory architecture, dramatically reducing overheads
+on data sharing. We also design an extensible interface between CPU and GPU,
+ which is easy to scale to physical distributed GPUs, compared to CUDA asynchronization interface. In our design, each thread takes control of one GPU.
+
+When matrix size becomes huge, the load balancing among multiple GPUs will be a problem for performance as shown in column 2 of Table \ref{tab:hugeResultTesla}.
+To conquer this issue we also introduce a dynamic load-balancing method for a better speedup, where a GPU will take new tasks on unfinished subintervals as soon as it finishes its prior task.
+
