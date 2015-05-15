@@ -13,6 +13,7 @@ The bisection and twisted algorithm is divided into two phases:
 (2) obtain the corresponding left and right singular vectors of every singular value by twisted factorization.
 Next we describe these two phases in the following subsections.
 
+\vspace{-0.1in}
 \subsection{Bisection Algorithm}\label{subsec:bisection}
 Suppose $B$ is an upper bidiagonal $n \times n$ matrix with elements $b_{i,j}$.
 The matrix $T = B^T B - \mu^2 I_n$ can be decomposed as
@@ -20,16 +21,28 @@ The matrix $T = B^T B - \mu^2 I_n$ can be decomposed as
 T = B^T B - \mu^2 I_n = L D L^T ,
 \label{eq:T}
 \end{equation}
-where $\mu$ is a shift variable, $D=diag(d_1,d_2,\cdots,d_n)$ and $L$ is lower bidiagonal matrix, whose diagonal elements are $1$s and one-order subdiagonal elements are $l_{i}, (i=1,\cdots,n-1)$.
+where $\mu$ is a variable, $D=diag(d_1,d_2,\cdots,d_n)$ and $L$ is lower bidiagonal matrix with the form 
+%, whose diagonal elements are $1$s and one-order subdiagonal elements are $l_{i}, (i=1,\cdots,n-1)$. The form of $L$ is
+\begin{equation}
+ L =  \left( \begin{array}{ccccc}
+     1&      &       &        &  \\
+ l_{1}& 1    &       & 0      &  \\
+      & l_{2}& \ddots&        &  \\
+      & 0    & \ddots& \ddots &  \\
+      &      &       & l_{n-1}& 1
+\end{array} \right) .
+\label{eq:l}
+\end{equation}
 By substituting $L$ and $D$ into Eq. (\ref{eq:T}), we can get the following equations
-\[
+\begin{equation}
 \left \{ \begin{aligned}
 b_{1,1}^2 - \mu^2 &= d_1\\
 b_{k-1,k-1} b_{k-1,k} &= d_{k-1} l_{k-1}\\
 b_{k-1,k}^2 + b_{k,k}^2 - \mu^2 &= l_{k-1}^2 d_{k-1} + d_k
 \vspace{-0.05in}
 \end{aligned} \right .
-\label{eq:ldl} \]
+\label{eq:ldl}
+\end{equation}
 where $k = 2,3,\cdots,n$.
 Next, we define an auxiliary values $t_{k} = t_{k-1} * (b_{k-1,k}^2 / d_{k-1}) - \mu^2$, and then all the equations in Eq. (\ref{eq:ldl}) reduce to
 \begin{equation}
@@ -42,15 +55,21 @@ d_k = b_{k,k}^2 + t_{k}
 \label{eq:negcount}
 \end{equation}
 
-Matrices $D$ and $T$ are two congruent symmetric matrices.
-According to the Sylvester's law of inertia, both matrices $D$ and $T$ have the same numbers of positive, negative, and zero eigenvalues.
-Thus, the number of negative elements in the diagonal of matrix $D$ is the number of singular values of matrix $T$.
-We define a function denoted by $NegCount(\mu)$ to count the number of negative elements in the diagonal of matrix $D$. %described in Algorithm \ref{alg:negcount}.
-%Algorithm \ref{alg:negcount} describes how $NegCount$ function works.
-%Lines 3-7 calculate the negative number of singular values that are less than $\mu$.
-%Since matrices $B$ and $B^T$ have the same singular values,
-$NegCount(\mu)$ is also the number of the singular values of $B$ which are less than $\mu$.
-$NegCount(x)$ is a monotonically non-decreasing function of $x$ \cite{95ETNAbisecion}.
+We define a function denoted by $NegCount(\mu)$ to count the number of negative elements of $d_i\;(i=1\cdots n)$ in matrix $D$.
+Matrices $D$ and $T$ have the same properties on $NegCount$ function, according to the Sylvester's law of inertia \cite{13sylvester}.
+Algorithm \ref{alg:negcount} describes how $NegCount$ function works.
+$NegCount(\mu)$ is a monotonically non-decreasing function of $\mu$, the $i$th singular value $x_i$ can be solved by the following equations
+\begin{equation}
+\left \{
+\begin{aligned}
+NegCount(x_i+\delta) > i \\
+NegCount(x_i-\delta) < i ,
+\end{aligned}
+\right .
+\label{eq:negcount}
+\end{equation}
+which can be calculated by bisection algorithm \cite{95ETNAbisecion}.
+\input{algorithm_negcount}
 
 \subsection{Twisted Algorithm}
 Suppose $\lambda$ is a singular value of bidiagonal matrix $B \in R^{n \times n}$.
@@ -59,16 +78,16 @@ Then the matrix $B^T B - \lambda^2 I$ can be decomposed as
 B^T B - \lambda^2 I_n = L D_L L^T = U D_U U^T ,
 \end{equation}
 where $D_L=diag(\alpha_1, \cdots, \alpha_n)$, $D_U = diag(\beta_1, \cdots, \beta_n)$, 
-$L$ is lower bidiagonal matrix, whose diagonal elements are $1$s and one-order subdiagonal are $l_{i}, (i=1,\cdots,n-1)$ ($L$ share the same format as in Eq. (\ref{eq:T})).
-$U$ is upper bidiagonal matrix, whose diagonal elements are $1$s and one-order superdiagonal are $u_{i}, (i=1,\cdots,n-1)$. 
+$L$ share the same format as in Eq. (\ref{eq:l}).
+$U$ is upper bidiagonal matrix, who is symmetical to $L$ expect the one-order superdiagonal are $u_{i}, (i=1,\cdots,n-1)$. 
 
 Given the $LDL^T$ and $UDU^T$ decomposition, the twisted factorization of the shifted matrix is shown as
 \begin{equation}
 B^T B - \lambda^2 I = N_k D_k N_k^T ,
 \label{eq:twisted}
 \end{equation}
-where $D_k$ is diagonal matrix, $N_k$ is a twisted combination of the partial lower triangular $L$ and the partial upper triangular $U$.
-The subscript $k = \arg \min \gamma$, and $\gamma = (\beta_1, \beta_2 - \alpha_2 * l_1, \cdots, \beta_i - \alpha_i * l_{i-1}, \cdots, \beta_{n-1} - \alpha_{n-1} * l_{n-2}, \alpha_n)$.
+where $D_k$ is diagonal matrix, $N_k$ is a twisted combination of the partial lower triangular $L$ and the partial upper triangular $U$. The form of $N_k$ is in \cite{09NLAAtwisted}.
+%The subscript \begin{equation}k = \arg \min \gamma,\end{equation} and $\gamma = (\beta_1, \beta_2 - \alpha_2 * l_1, \cdots, \beta_i - \alpha_i * l_{i-1}, \cdots, \beta_{n-1} - \alpha_{n-1} * l_{n-2}, \alpha_n)$.
 
 Thus, the corresponding singular vector of $\lambda$ can be obtained by solving the following matrix equations and then normalizing the solution:
 \begin{equation}

@@ -84,9 +84,9 @@ of such optimizations in Section \ref{sec:results}.
 \subsection{Solution to Big Matrices} \label{sec_huge}
 In our design, the maximum number of singular values can be processed on a singular GPU is $m_b = subinterval\_size \times thread\_block\_size$,
 while the maximum number of singular vectors are determined by $m_t = \sqrt{U / (5 * S)}$,
-where $U$ is the memory size of GPU.
+where $U$ is the memory size of GPU, 5 is mentioned above.
 Usually, $m_b$ is much larger than $m_t$.
-For Tesla K40c with 16GB memory, $m_t = 24K$, while $m_b = 262K$.
+For Tesla K40c with 12GB memory, $m_t = 24K$, while $m_b = 262K$.
 However, when the matrix size is larger than $m_t$, even larger than $m_b$,
 the GPU kernels cannot obtain all singular values and vectors any more with a single GPU.
 Therefore we derive a divide-and-conquer architecture to solve the huge matrix size as explained in this section.
