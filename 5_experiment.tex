@@ -22,7 +22,7 @@ For Sheetal's \cite{09IPDPSQR} and Liu's \cite{13CFDC} implementation, we use th
 \begin{figure}[t]
 \vspace{-0.1in}
 \centering
-\includegraphics[width=0.35\textwidth]{svd_speedup}
+\includegraphics[width=0.4\textwidth]{svd_speedup}
 \vspace{-0.1in}
 \caption{Overall Performance Comparison}
 \label{fig:svd_speedup}
@@ -120,7 +120,7 @@ Now let us take a look at each of the algorithms from the perspective of matrix 
 \subsection{Experiments with Big Matrices}
 Table \ref{tab:hugeResultTesla} shows the performance of very large matrix with double-precision floating-point numbers on a single Tesla and two Tesla GPUs on a server. For two Telsa GPUs, we compared static workload allocation (50\%/50\%) and dynamic allocation where each GPU is tracked constantly by the host CPU and assigned new workload as soon as it finishes the current kernel. 
 When matrix size reaches 1 million by 1 million our BT algorithm reaches the results in 54801 seconds with a single Telsa, and 35607 seconds with two Telsa GPUs. This is a 1.54X speedup.
-\begin{table}[htbp]
+\begin{table}[t]
 \vspace{-0.1in}
 \caption{Performance of Huge Size Matrix with double floating-point on Tesla}
 \vspace{-0.1in}
@@ -149,10 +149,10 @@ We compare the execution time on two different singular value kernels:
 ``equal length division'' versus ``equal number division''. Each
 method has two phases: (1) divide the interval into subintervals and
 (2) calculate singular values in each subinterval.
-\begin{figure}[t]
+\begin{figure}[htbp]
 \vspace{-0.1in}
 \centering
-\includegraphics[width=0.35\textwidth]{compare_value_kernel}
+\includegraphics[width=0.4\textwidth]{compare_value_kernel}
 \vspace{-0.1in}
 \caption{Comparison of Equal Length Division and Equal Number Division.}
 \label{fig:compare_value_kernel}
@@ -169,7 +169,7 @@ Thus, the equal number division version is obviously the winner when the matrix 
 
 \begin{figure}[hbpt]
 \centering
-\includegraphics[width=0.35\textwidth]{transaction}
+\includegraphics[width=0.4\textwidth]{transaction}
 \vspace{-0.1in}
 \caption{Memory Transactions on Singular Vector Design}
 \label{fig:transaction}
@@ -198,7 +198,7 @@ The error tolerance is between $10^{-5}$ to $10^{-16}$ with tenfolder decreasing
 \begin{figure}[htbp]
 \vspace{-0.1in}
 \centering
-\includegraphics[width=0.35\textwidth]{tolerance}
+\includegraphics[width=0.4\textwidth]{tolerance}
 \vspace{-0.1in}
 \caption{Average Extra Time When Accuracy Increase}
 \label{fig:tolerance}
@@ -207,7 +207,7 @@ The error tolerance is between $10^{-5}$ to $10^{-16}$ with tenfolder decreasing
 \begin{figure}[hbpt]
 \vspace{-0.1in}
 \centering
-\includegraphics[width=0.35\textwidth]{ortho_err}
+\includegraphics[width=0.4\textwidth]{ortho_err}
 \vspace{-0.1in}
 \caption{Orthogonal Error of Singular Vector}
 \label{fig:ortho_err}
