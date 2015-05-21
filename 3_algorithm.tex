@@ -3,7 +3,7 @@ For an arbitrary matrix $A\in \mathbb{R}^{m \times n} (m>n)$,
 The SVD of an arbitrary matrix $A\in \mathbb{R}^{m \times n} (m>n)$ is the form 
 \[A = U \Sigma V^T,\] where $U$ and $V$ is a $m \times m$ and $n \times n$ orthogonal matrix whose columns are singular vectors, and $\Sigma$ is a $m\times n$ diagonal matrix whose diagonal elements are singular values.
 A typical SVD algorithm can be broken down into two steps \cite{65SIAM}.
-The first step is to reduce the initial matrix to bidiagonal matrix by Householder transform.
+The first step is to reduce the initial matrix to bidiagonal matrix by Householder transform. Without this step, all the algorithms mentioned above increase the time complexity.
 The second step is to diagonalize the bidiagonal matrix.
 Householder transform above has been optimized in paper \cite{LiuHouseholder}.
 In this paper, we focus only on the second step that reduces a bidiagonal matrix to a diagonal matrix, for which the ``bisection and twisted'' algorithm is designed.
