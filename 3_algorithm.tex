@@ -3,9 +3,9 @@ For an arbitrary matrix $A\in \mathbb{R}^{m \times n} (m>n)$,
 The SVD of an arbitrary matrix $A\in \mathbb{R}^{m \times n} (m>n)$ is the form 
 \[A = U \Sigma V^T,\] where $U$ and $V$ is a $m \times m$ and $n \times n$ orthogonal matrix whose columns are singular vectors, and $\Sigma$ is a $m\times n$ diagonal matrix whose diagonal elements are singular values.
 A typical SVD algorithm can be broken down into two steps \cite{65SIAM}.
-The first step is to reduce the initial matrix to bidiagonal matrix by Householder transform. Without this step, all the algorithms mentioned above increase the time complexity.
-The second step is to diagonalize the bidiagonal matrix.
+The first step is to reduce the initial matrix to bidiagonal matrix by Householder transform. Without this step, all the algorithms mentioned above will increase the time complexity.
 Householder transform above has been optimized in paper \cite{LiuHouseholder}.
+The second step is to diagonalize the bidiagonal matrix.
 In this paper, we focus only on the second step that reduces a bidiagonal matrix to a diagonal matrix, for which the ``bisection and twisted'' algorithm is designed.
  
 The bisection and twisted algorithm is divided into two phases:
@@ -56,7 +56,7 @@ d_k = b_{k,k}^2 + t_{k}
 We define a function denoted by $NegCount(\mu)$ to count the number of negative elements of $d_i\;(i=1\cdots n)$ in matrix $D$.
 Matrices $D$ and $T$ have the same properties on $NegCount$ function, according to the Sylvester's law of inertia \cite{13sylvester}.
 Algorithm \ref{alg:negcount} describes how $NegCount$ function works.
-$NegCount(\mu)$ is a monotonically non-decreasing function of $\mu$, the $i$th singular value $x_i$ can be solved by the following equations
+$NegCount(\mu)$ is a monotonically non-decreasing function of $\mu$. The $i$th singular value $x_i$ can be solved by the following equations
 \begin{equation}
 \left \{
 \begin{aligned}
@@ -66,7 +66,7 @@ NegCount(x_i-\delta) < i ,
 \right .
 \label{eq:negcount}
 \end{equation}
-which can be calculated by bisection algorithm \cite{95ETNAbisecion}.
+where $\delta$ is a small value close to 0. Eq. (\ref{eq:negcount}) can be calculated by bisection algorithm \cite{95ETNAbisecion}.
 \input{algorithm_negcount}
 
 \subsection{Twisted Algorithm}
@@ -77,7 +77,7 @@ B^T B - \lambda^2 I_n = L D_L L^T = U D_U U^T ,
 \end{equation}
 where $D_L=diag(\alpha_1, \cdots, \alpha_n)$, $D_U = diag(\beta_1, \cdots, \beta_n)$, 
 $L$ share the same format as in Eq. (\ref{eq:l}).
-$U$ is upper bidiagonal matrix, who is symmetical to $L$ expect the one-order superdiagonal are $u_{i}, (i=1,\cdots,n-1)$. 
+$U$ is upper bidiagonal matrix, who is symmetical to $L$ except the one-order superdiagonal are $u_{i}, (i=1,\cdots,n-1)$. 
 
 Given the $LDL^T$ and $UDU^T$ decomposition, the twisted factorization of the shifted matrix is shown as
 \begin{equation}

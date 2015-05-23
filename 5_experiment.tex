@@ -173,7 +173,7 @@ Thus, the equal number division version is obviously the winner when the matrix 
 \vspace{-0.1in}
 \caption{Memory Transactions on Singular Vector Design}
 \label{fig:transaction}
-\vspace{-0.1in}
+\vspace{-0.2in}
 \end{figure}
 \subsubsection{Memory Access Optimization}
 We evaluate the memory optimization techniques on improving the performance
@@ -204,21 +204,23 @@ The error tolerance is between $10^{-5}$ to $10^{-16}$ with tenfolder decreasing
 \label{fig:tolerance}
 \vspace{-0.1in}
 \end{figure}
-\begin{figure}[hbpt]
-\vspace{-0.1in}
-\centering
-\includegraphics[width=0.4\textwidth]{ortho_err}
-\vspace{-0.1in}
-\caption{Orthogonal Error of Singular Vector}
-\label{fig:ortho_err}
-\vspace{-0.1in}
-\end{figure}
 Figure \ref{fig:tolerance} shows the average increased execution time when the accuracy of singular values goes up a higher level.
 In other word, it shows the average increased execution time when the error tolerance becomes smaller from $10^{-x}$ to $10^{-(x+1)}, (x=5,\cdots,15)$.
 The additional execution time is less than $20 ms$ when matrix size is smaller than 12000, and $40 ms$ when matrix size is larger than 15000.
 In either case, the increased time is negligible compared to the overall exeuction time.
 
+\begin{figure}[hbpt]
+\vspace{-0.1in}
+\centering
+\includegraphics[width=0.4\textwidth]{orthogonal}
+\vspace{-0.1in}
+\caption{Orthogonality of Singular Vector}
+\label{fig:ortho_img}
+\vspace{-0.1in}
+\end{figure}
 \subsubsection{Orthogonality of Singular Vector}
-%Figure \ref{fig:ortho_img} shows the image of multiplication of singular vectors when matrix size is 10000.
-%The element of white diagonal are close to 0s, and the element in black areas are 1s.
-Figure \ref{fig:ortho_err} shows the error distribution of orthogonality of a 10K$\times$10K matrix. We define the orthogonal error is the element in $U\times U^T - I$. The maximum orthogonal error is less than 0.02.
+Figure \ref{fig:ortho_img} shows the image of multiplication of singular vectors when matrix size is 10000.
+The element in white areas are close to 0s, and the element in black diagonal are 1s.
+It shows our implementation has good orthogonality.
+
+%Figure \ref{fig:ortho_err} shows the error distribution of orthogonality of a 10K$\times$10K matrix. We define the orthogonal error is the element in $U\times U^T - I$. The maximum orthogonal error is less than 0.02.
